@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shop Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head><body>
+<div class="top"><h1>📊 Shop Dashboard</h1><span class="live"><i></i>Live</span></div>
+<div class="wrap">
+  <div class="stats">
+    <div class="stat rev"><span>Revenue (paid)</span><b id="rev">0 KES</b></div>
+    <div class="stat"><span>Paid orders</span><b id="paid">0</b></div>
+    <div class="stat pend"><span>Pending</span><b id="pend">0</b></div>
+    <div class="stat"><span>All orders</span><b id="all">0</b></div>
+  </div>
+  <div class="filters" id="filters">
+    <button data-f="ALL" class="on">All</button>
+    <button data-f="SUCCESS">Paid</button>
+    <button data-f="PENDING">Pending</button>
+    <button data-f="FAILED">Failed</button>
+  </div>
+  <div id="list"></div>
+</div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body></html>

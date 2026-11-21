@@ -1,0 +1,14 @@
+:root{
+  --pink:#e8457c;      /* contrast colour 1: raspberry */
+  --pink-soft:#fde6ee;
+  --navy:#17324d;      /* contrast colour 2: deep navy */
+  --navy-soft:#e4ebf3;
+  --lime:#c8f035;      /* out-of-the-box colour: electric lime */
+  --bg:#fbf7f4;
+  --ink:#1d2433;
+  --muted:#7a8394;
+  --ok:#1fa463; --warn:#b7791f; --bad:#c0392b;
+  --radius:20px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
