@@ -1,0 +1,319 @@
+# ---------------- VOICE ----------------
+QTY_WORDS = {"a": 1, "an": 1, "one": 1, "two": 2, "to": 2, "too": 2, "three": 3,
+             "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
+             "ten": 10, "eleven": 11, "twelve": 12}
+DIGIT_WORDS = {"zero": "0", "oh": "0", "one": "1", "two": "2", "three": "3",
+               "four": "4", "five": "5", "six": "6", "seven": "7", "eight": "8",
+               "nine": "9"}
+EXTRA_NAMES = {"choc": "Chocolate Cake", "velvet": "Red Velvet Cake",
+               "cup cake": "Cupcake", "cup cakes": "Cupcake"}
+PHONE_RE = r"(?:\+?254|0)[\s\-]?[71](?:[\s\-]?\d){8}"
+
+
+def menu_aliases():
+    aliases = {}
+    for name in MENU:
+        low = name.lower()
+        forms = {low}
+        if low.endswith(" cake"):
+            forms.add(low[:-5])
+        for f in list(forms):
+            forms.add(f + "s")
+        for f in forms:
+            aliases[f] = name
+    for word, name in EXTRA_NAMES.items():
+        if name in MENU:
+            aliases[word] = name
+    return aliases
+
+
+def find_phone(text):
+    tokens = re.findall(r"[a-z]+|\d+", (text or "").lower())
+    joined = " ".join(DIGIT_WORDS.get(t, t) for t in tokens)
+    m = re.search(r"(?:254|0)\s?[71](?:\s?\d){8}", joined)
+    return clean_phone(m.group().replace(" ", "")) if m else None
+
+
+def parse_items(text):
+    work = re.sub(r"[^a-z0-9\s]", " ", (text or "").lower())
+    work = re.sub(PHONE_RE, " ", work)
+    work = re.sub(r"\s+", " ", work)
+    words = "|".join(QTY_WORDS)
+    found = {}
+    aliases = menu_aliases()
+    for alias in sorted(aliases, key=len, reverse=True):
+        pat = re.compile(r"\b(?:(\d+|" + words + r")\s+(?:of\s+)?)?" + re.escape(alias) + r"\b")
+        while True:
+            m = pat.search(work)
+            if not m:
+                break
+            q = m.group(1)
+            qty = int(q) if q and q.isdigit() else QTY_WORDS.get(q, 1)
+            name = aliases[alias]
+            found[name] = min(50, found.get(name, 0) + max(1, qty))
+            work = work[:m.start()] + " " * (m.end() - m.start()) + work[m.end():]
+    return found
+
+
+def voice_command(text):
+    low = (text or "").lower()
+    if re.search(r"\b(clear|cancel|reset|start over|empty)\b", low):
+        return "clear"
+    if re.search(r"\b(pay|checkout|check out|place order|confirm)\b", low):
+        return "pay"
+    return None
+
+
+@app.route("/voice", methods=["POST"])
+def voice():
+    text = (request.get_json(silent=True) or {}).get("text", "")
+    return jsonify(items=parse_items(text), phone=find_phone(text),
+                   command=voice_command(text), heard=text)
+
+
+VOICE_HTML = r"""
+<div id="voicebox" style="max-width:520px;margin:16px auto 0;padding:0 16px">
+  <button id="mic" style="width:100%;padding:16px;border:none;border-radius:16px;background:linear-gradient(135deg,#ff7e8b,#ffb36b);color:#fff;font-size:18px;font-weight:700">🎤 Tap and speak your order</button>
+  <button id="hfbtn" style="width:100%;margin-top:8px;padding:12px;border:none;border-radius:14px;background:#efe3dc;color:#6b4a3a;font-size:16px;font-weight:700">👂 Hands-free: OFF</button>
+  <div id="heard" style="margin-top:8px;font-size:14px;color:#7a6a62"></div>
+  <div style="margin-top:4px;font-size:13px;color:#9a8a82">Try: "Hello chart, two chocolate cakes and a cupcake, my number is 0712 345 678, pay"</div>
+</div>
+<script>
+(function(){
+  var box = document.getElementById('voicebox');
+  var list = document.getElementById('list');
+  list.parentNode.insertBefore(box, list);
+  var mic = document.getElementById('mic');
+  var hfBtn = document.getElementById('hfbtn');
+  var heard = document.getElementById('heard');
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var listening = false, rec = null;
+
+  // ---- Wake phrases: edit this list to change the magic words ----
+  var WAKE = /\b(?:hello|hey|hi|ok|okay)\s+(?:chart|chat|cake|cakes|paybot|pay bot|bot)\b/;
+
+  var handsFree = false, hf = null, hfState = 'wake', cmdTimer = null;
+  var speaking = false, ignoreUntil = 0;
+
+  function say(text){
+    try {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      speaking = true;
+      var done = function(){ speaking = false; ignoreUntil = Date.now() + 900; };
+      u.onend = done;
+      u.onerror = done;
+      setTimeout(done, 2000 + text.length * 110);
+      window.speechSynthesis.speak(u);
+    } catch (e) { speaking = false; }
+  }
+
+  var origShow = window.show;
+  window.show = function(cls, text){
+    origShow(cls, text);
+    if (cls === 'ok') say('Payment received. Thank you for your order!');
+    else if (cls === 'err') say(text.replace('e.g.', 'for example'));
+    else if (text.indexOf('Check your phone') === 0) say('Check your phone and enter your M Pesa PIN.');
+  };
+
+  function describe(items){
+    return Object.keys(items).map(function(n){ return items[n] + ' ' + n; }).join(', ');
+  }
+
+  function handle(d){
+    heard.textContent = 'I heard: "' + d.heard + '"';
+    if (d.command === 'clear'){ cart = {}; render(); say('Okay, I cleared your order.'); return; }
+    var added = Object.keys(d.items);
+    added.forEach(function(n){ cart[n] = Math.min(50, (cart[n] || 0) + d.items[n]); });
+    if (d.phone) document.getElementById('phone').value = d.phone;
+    render();
+    var t = total();
+    if (d.command === 'pay'){
+      if (t === 0){ say('Your order is empty. Tell me what you would like first.'); return; }
+      var digits = document.getElementById('phone').value.replace(/\D/g, '');
+      if (digits.length < 9){ say('Please say or type your M Pesa number first.'); return; }
+      say('Sending your payment request.');
+      pay();
+      return;
+    }
+    if (added.length === 0 && !d.phone){
+      say("Sorry, I did not catch an item. Try saying, two chocolate cakes and a cupcake.");
+      return;
+    }
+    var parts = [];
+    if (added.length) parts.push('Added ' + describe(d.items) + '. Your total is ' + t + ' shillings.');
+    if (d.phone) parts.push('Number saved.');
+    parts.push('Say pay when you are ready.');
+    say(parts.join(' '));
+  }
+
+  function sendText(text){
+    fetch('/voice', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text: text})})
+      .then(function(r){ return r.json(); })
+      .then(handle)
+      .catch(function(){ heard.textContent = 'Network problem. Please try again.'; });
+  }
+
+  function setMic(on){
+    listening = on;
+    mic.textContent = on ? '\uD83C\uDF99 Listening... speak now' : '\uD83C\uDFA4 Tap and speak your order';
+    mic.style.background = on ? '#d93a4a' : 'linear-gradient(135deg,#ff7e8b,#ffb36b)';
+  }
+
+  // ---------------- Hands-free mode (magic words) ----------------
+  function setHfLabel(){
+    if (!handsFree){
+      hfBtn.textContent = '\uD83D\uDC42 Hands-free: OFF';
+      hfBtn.style.background = '#efe3dc';
+      hfBtn.style.color = '#6b4a3a';
+    } else if (hfState === 'wake'){
+      hfBtn.textContent = '\uD83D\uDC42 ON - say "Hello chart"';
+      hfBtn.style.background = '#1fa463';
+      hfBtn.style.color = '#fff';
+    } else {
+      hfBtn.textContent = '\uD83C\uDF99 Listening for your order...';
+      hfBtn.style.background = '#d93a4a';
+      hfBtn.style.color = '#fff';
+    }
+  }
+
+  function activateCommand(){
+    hfState = 'command';
+    setHfLabel();
+    say('Yes? I am listening.');
+    clearTimeout(cmdTimer);
+    cmdTimer = setTimeout(function(){ hfState = 'wake'; setHfLabel(); }, 10000);
+  }
+
+  function onHfText(text){
+    heard.textContent = 'Heard: "' + text + '"';
+    if (hfState === 'command'){
+      clearTimeout(cmdTimer);
+      hfState = 'wake';
+      setHfLabel();
+      sendText(text);
+      return;
+    }
+    var m = text.match(WAKE);
+    if (!m) return;
+    var rest = text.slice(m.index + m[0].length).replace(/^[\s,.]+/, '');
+    if (rest.length > 2) sendText(rest);
+    else activateCommand();
+  }
+
+  function startHf(){
+    hf = new SR();
+    hf.lang = 'en-KE';
+    hf.continuous = true;
+    hf.interimResults = true;
+    hf.onresult = function(ev){
+      for (var i = ev.resultIndex; i < ev.results.length; i++){
+        var r = ev.results[i];
+        if (!r.isFinal) continue;
+        var text = r[0].transcript.trim().toLowerCase();
+        if (!text) continue;
+        if (speaking || Date.now() < ignoreUntil) continue;
+        onHfText(text);
+      }
+    };
+    hf.onend = function(){
+      if (handsFree){
+        setTimeout(function(){ try { hf.start(); } catch (e) {} }, 400);
+      }
+    };
+    hf.onerror = function(e){
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+        stopHf('Please allow microphone access for this site, then try again.');
+      } else if (e.error === 'network'){
+        stopHf('Voice needs internet and Google Chrome.');
+      }
+    };
+    try { hf.start(); } catch (e) {}
+  }
+
+  function stopHf(msg){
+    handsFree = false;
+    clearTimeout(cmdTimer);
+    try { if (hf) hf.stop(); } catch (e) {}
+    setHfLabel();
+    if (msg) heard.textContent = msg;
+  }
+
+  hfBtn.onclick = function(){
+    if (handsFree){ stopHf('Hands-free is off.'); return; }
+    if (!SR){
+      heard.textContent = 'Voice is not supported in this browser. Please open this page in Google Chrome.';
+      return;
+    }
+    try { if (listening && rec) rec.stop(); } catch (e) {}
+    handsFree = true;
+    hfState = 'wake';
+    setHfLabel();
+    startHf();
+    say('Hands-free is on. Say hello chart to start.');
+  };
+
+  // ---------------- Tap to speak (still works) ----------------
+  mic.onclick = function(){
+    if (!SR){
+      heard.textContent = 'Voice is not supported in this browser. Please open this page in Google Chrome.';
+      return;
+    }
+    if (handsFree){ activateCommand(); return; }
+    if (listening){ rec.stop(); return; }
+    rec = new SR();
+    rec.lang = 'en-KE';
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    var handled = false, lastText = '', silenceTimer = null, maxTimer = null;
+    function stopSoon(ms){
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(function(){ try { rec.stop(); } catch (e) {} }, ms);
+    }
+    rec.onstart = function(){
+      setMic(true);
+      stopSoon(6000);
+      maxTimer = setTimeout(function(){ try { rec.stop(); } catch (e) {} }, 12000);
+    };
+    rec.onend = function(){
+      clearTimeout(silenceTimer);
+      clearTimeout(maxTimer);
+      setMic(false);
+      if (!handled && lastText){ handled = true; sendText(lastText); }
+    };
+    rec.onerror = function(e){
+      clearTimeout(silenceTimer);
+      clearTimeout(maxTimer);
+      setMic(false);
+      var msg = 'Sorry, I could not hear that. Please try again.';
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') msg = 'Please allow microphone access for this site, then try again.';
+      else if (e.error === 'network') msg = 'Voice needs internet and Google Chrome.';
+      else if (e.error === 'no-speech') msg = 'I did not hear anything. Tap the button and try again.';
+      heard.textContent = msg;
+    };
+    rec.onresult = function(ev){
+      var text = '', isFinal = false;
+      for (var i = 0; i < ev.results.length; i++){
+        text += ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) isFinal = true;
+      }
+      lastText = text;
+      heard.textContent = 'Hearing: "' + text + '"';
+      if (isFinal){
+        if (!handled){ handled = true; sendText(text); }
+        try { rec.stop(); } catch (e) {}
+        return;
+      }
+      stopSoon(1500);
+    };
+    rec.start();
+  };
+
+  setHfLabel();
+})();
+</script>
+"""
