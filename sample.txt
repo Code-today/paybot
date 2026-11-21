@@ -315,5 +315,13 @@ VOICE_HTML = r"""
 
   setHfLabel();
 })();
+
+PAYHERO_USERNAME=RxtnZc5TYBXj7OiLk5kR
+PAYHERO_PASSWORD=r8fkaUfQjyffSGyrUe6YDCEWCYAnzuGRHZmiw5qd
+CHANNEL_ID=15680
+MOCK_MODE=false
+CALLBACK_URL=https://molecule-reactor-spring.ngrok-free.dev/callback
+ADMIN_KEY=secret-key
+
 </script>
 """
