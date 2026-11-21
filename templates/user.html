@@ -1,67 +1,40 @@
-<!--<!doctype html><html lang="en"><head>
+<!doctype html><html lang="en"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbfaf6">
 <title>Sweet Treats Cake Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 </head><body>
-<header><h1>🎂 Sweet Treats Cake Shop</h1><p>Tap to order. Pay with M-Pesa.</p></header>
-<div class="list" id="list"></div>
-<div class="bar"><div class="inner">
-  <div class="total"><span>Total</span><span id="total">0 KES</span></div>
-  <input id="phone" type="tel" inputmode="numeric" placeholder="M-Pesa number, e.g. 0712345678">
-  <button id="pay" disabled>Pay with M-Pesa</button>
-  <div id="msg"></div>
-</div></div>
-<script>var MENU = {{ menu|tojson }};</script>
-<script src="{{ url_for('static', filename='js/user.js') }}"></script>
-</body></html>-->
 
+<header><h1>🎂 Sweet Treats</h1><p>Tap to order. Pay with M-Pesa.</p></header>
 
-
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#17324d">
-  <title>Sweet Treats Cake Shop</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
-</head>
-<body>
-
-<header>
-  <h1>🎂 Sweet Treats</h1>
-  <p>Freshly baked. Pay easily with M-Pesa.</p>
-</header>
-
-<div class="list" id="list"></div>
-
-<div class="bar">
-  <div class="inner">
-    <!-- New Cart Header -->
-    <div class="cart-header">
-      <div class="total">
-        <span>Total</span>
-        <span id="total">0 KES</span>
-      </div>
-      <div class="item-count" id="item-count">0 items</div>
-    </div>
-    
-    <input id="phone" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="M-Pesa number, e.g. 0712345678" autocomplete="tel">
-    
-    <!-- Added Spinner & Text Wrapper -->
-    <button id="pay" disabled aria-label="Pay with M-Pesa">
-      <span class="spinner"></span>
-      <span class="btn-text">Pay with M-Pesa</span>
-    </button>
-    
-    <div id="msg" role="alert"></div>
-  </div>
+<div class="scope product-cards" style="--grid--column-max-count: 4; --grid--column-min-width: 18rem;">
+  <div class="_card-list grid" id="list"></div>
 </div>
 
+<div class="bar"><div class="inner">
+  <div class="cart-header">
+    <div class="total"><span id="total">0 KES</span></div>
+    <div class="item-count" id="item-count">0 items</div>
+  </div>
+  <input id="phone" type="tel" inputmode="numeric" pattern="[0-9+]*" placeholder="M-Pesa number, e.g. 0712345678" autocomplete="tel">
+  <button id="pay" disabled><span class="spinner"></span><span class="btn-text">Pay with M-Pesa</span></button>
+  <div id="msg" role="alert"></div>
+</div></div>
+
+<!-- Inset-shadow filter (keep out of display:none — Firefox quirk) -->
+<svg width="0" height="0" style="visibility:hidden; position:fixed;">
+  <filter id="svg-inset-shadow">
+    <feOffset in="SourceAlpha" dx="6" dy="8"/>
+    <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+    <feComposite in="SourceAlpha" operator="out"/>
+    <feBlend in2="SourceGraphic" mode="multiply"/>
+  </filter>
+</svg>
+
 <script>var MENU = {{ menu|tojson }};</script>
 <script src="{{ url_for('static', filename='js/user.js') }}"></script>
-</body>
-</html>
+</body></html>

@@ -1,47 +1,12 @@
 MENU = {
-    # --- Original Items (Adjusted slightly for consistency) ---
-    "Chocolate Cake": {"price": 800, "emoji": "🍫"},
-    "Vanilla Cake": {"price": 700, "emoji": "🍰"},
-    "Red Velvet Cake": {"price": 1000, "emoji": "❤️"},
-    "Cupcake": {"price": 150, "emoji": "🧁"},
-    "Cake (Slice)": {"price": 250, "emoji": "🎂"},
-
-    # --- Classic Cakes ---
-    "Black Forest Cake": {"price": 1200, "emoji": "🍒"},
-    "Carrot Cake": {"price": 900, "emoji": "🥕"},
-    "New York Cheesecake": {"price": 1100, "emoji": "🧀"},
-    "Lemon Drizzle Cake": {"price": 850, "emoji": "🍋"},
-    "Fruit Cake": {"price": 1300, "emoji": "🍇"},
-    "Marble Cake": {"price": 750, "emoji": "🌀"},
-
-    # --- Tropical & Fruity Cakes ---
-    "Pineapple Cake": {"price": 950, "emoji": "🍍"},
-    "Mango Cake": {"price": 1050, "emoji": "🥭"},
-    "Strawberry Shortcake": {"price": 1150, "emoji": "🍓"},
-    "Coconut Cake": {"price": 950, "emoji": "🥥"},
-    "Banana Bread": {"price": 450, "emoji": "🍌"},
-
-    # --- Specialty & Modern Cakes ---
-    "Coffee Walnut Cake": {"price": 900, "emoji": "☕"},
-    "Tiramisu": {"price": 600, "emoji": "🍰"},
-    "Pistachio Cake": {"price": 1400, "emoji": "🟢"},
-    "Matcha Cake": {"price": 1100, "emoji": "🍵"},
-    "Oreo Cake": {"price": 1250, "emoji": "🖤"},
-    "Peanut Butter Cake": {"price": 1000, "emoji": "🥜"},
-
-    # --- Pastries, Bakes & Sweets ---
-    "Brownie": {"price": 200, "emoji": "🟫"},
-    "Macaron": {"price": 250, "emoji": "🍪"},
-    "Croissant": {"price": 300, "emoji": "🥐"},
-    "Blueberry Muffin": {"price": 350, "emoji": "🫐"},
-    "Glazed Donut": {"price": 150, "emoji": "🍩"},
-    "Chocolate Chip Cookie": {"price": 100, "emoji": "🍪"},
-    "Fruit Tart": {"price": 500, "emoji": "🥧"},
-    "Cinnamon Roll": {"price": 400, "emoji": "🥐"},
-    "Eclair": {"price": 350, "emoji": "🥖"},
-
-    # --- Local Favorites (Kenyan Bakery Additions) ---
-    "Mandazi": {"price": 50, "emoji": "🍩"},
-    "Mahamri": {"price": 60, "emoji": "🥯"},
-    "Mahindi Cake (Cornmeal)": {"price": 300, "emoji": "🌽"},
+    "Chocolate Cake":    {"price": 800,  "emoji": "🍫", "category": "Chocolate", "accent": "#8b5e3c", "tags": ["Dark Cocoa", "Fudgy"],   "desc": "Triple-layer Belgian chocolate sponge with ganache drip."},
+    "Vanilla Cake":      {"price": 700,  "emoji": "🍰", "category": "Classic",   "accent": "#c9a227", "tags": ["Madagascar", "Light"],   "desc": "Airy vanilla sponge with silky buttercream."},
+    "Red Velvet Cake":   {"price": 1000, "emoji": "❤️", "category": "Signature", "accent": "#a4123f", "tags": ["Cream Cheese", "Velvety"], "desc": "Deep red velvet layers with tangy cream cheese frosting."},
+    "Cupcake":           {"price": 150,  "emoji": "🧁", "category": "Treats",    "accent": "#e56b8f", "tags": ["Bite-size"],             "desc": "Moist vanilla cupcake with a swirl of pink frosting."},
+    "Cake (Slice)":      {"price": 250,  "emoji": "🎂", "category": "By the Slice", "accent": "#4e8397", "tags": ["Quick Fix"],          "desc": "Any flavor, cut fresh — perfect with a chai."},
+    "Black Forest":      {"price": 1200, "emoji": "🍒", "category": "Chocolate", "accent": "#3f3f50", "tags": ["Cherries", "Kirsch"],    "desc": "Chocolate sponge, whipped cream, and dark cherries."},
+    "Mango Cake":        {"price": 1050, "emoji": "🥭", "category": "Fruit",     "accent": "#e8912b", "tags": ["Kent Mango", "Fresh"],   "desc": "Local Kent mango cream between vanilla layers."},
+    "Coconut Cake":      {"price": 950,  "emoji": "🥥", "category": "Fruit",     "accent": "#5f8a75", "tags": ["Toasted Flakes"],        "desc": "Coconut sponge with cream filling and toasted flakes."},
+    "Brownie":           {"price": 200,  "emoji": "🟫", "category": "Bakes",     "accent": "#5a3825", "tags": ["Gooey Center"],          "desc": "Dense, fudgy, and unapologetically chocolatey."},
+    "Mandazi":           {"price": 50,   "emoji": "🍩", "category": "Local",     "accent": "#c98f3d", "tags": ["Cardamom", "Warm"],      "desc": "Kenya's legendary coconut cardamom doughnut."},
 }
